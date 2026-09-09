@@ -1,41 +1,35 @@
 package domain
 
-import (
-	"time"
-)
+type LoginInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
-type Config struct {
-	// OTPMaxAttempts is the lockout threshold for VerifyOTP. After
-	// this many failures within the OTP window the email is locked
-	// out even with the correct code.
-	OTPMaxAttempts int
-	// OTPTTL is how long the OTP code (and its attempt counter)
-	// stay live in Redis before expiring.
-	OTPTTL time.Duration
-	// PasswordResetTTL is how long a forgot-password token stays
-	// usable. 30 minutes is a reasonable default — long enough for an
-	// email round-trip, short enough that a leaked link expires fast.
-	PasswordResetTTL time.Duration
-	// BcryptCost is forwarded to domain.User.ChangePassword on
-	// password change/reset. Caller (DI) injects from app config.
-	BcryptCost int
-	// LoginMaxAttempts is the lockout threshold for /auth/login. After
-	// this many failures (per email, within LoginLockoutTTL) the email
-	// is locked out for the remaining window even on a correct
-	// password — defeats slow brute-force from distributed IPs that
-	// per-IP rate limiting can't see.
-	LoginMaxAttempts int
-	// LoginLockoutTTL is how long the lockout window lasts and how
-	// long the per-email failure counter stays live. 15m is a
-	// reasonable default; long enough to defeat brute force, short
-	// enough that a legitimate user with a typo isn't permanently
-	// blocked.
-	LoginLockoutTTL time.Duration
-	// ForgotMaxAttempts caps how many /password/forgot calls one
-	// email can trigger inside ForgotLockoutTTL. Defends against
-	// abuse of the mailer queue (DOS via outbound email spam) and
-	// against attacker-driven reset-token rotation.
-	ForgotMaxAttempts int
-	// ForgotLockoutTTL is the rate-limit window for /password/forgot.
-	ForgotLockoutTTL time.Duration
+type TokenResponse struct {
+	Token         string `json:"token"`
+	RefereshToken string `json:"refresh_token"`
+	ExpireAt      int64  `json:"expire_at"`
+}
+
+type RegisterInput struct {
+	Name     string `json:"name"`
+	Surname  string `json:"surname"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type ResetPasswordInput struct {
+	Email       string `json:"email"`
+	NewPassword string `json:"new_password"`
+}
+
+type AuthUseCase interface {
+	RegisterUser(input *RegisterInput) (*TokenResponse, error)
+	Login(input *LoginInput) (*TokenResponse, error)
+	Logout(token string) error
+	RefreshToken(refreshToken string) (*TokenResponse, error)
+	ResetPassword(input *ResetPasswordInput) error
+	SendOTP(email string) error
+	VerifyOTP(email, otp string) error
 }
