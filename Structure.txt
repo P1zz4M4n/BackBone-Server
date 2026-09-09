@@ -1,0 +1,62 @@
+.
+├── cmd/
+│   └── api/
+│       └── main.go                  # Entry point (Main + Graceful Shutdown)
+│
+├── internal/                        # LOGICA APPLICATIVA PRIVATA
+│   │
+│   ├── config/                      # Caricamento e parsing delle variabili .env
+│   │   └── config.go
+│   │
+│   ├── domain/                      # ENTITÀ & INTERFACCE (Core senza dipendenze)
+│   │   ├── user.go                  # Struct Utente e interfacce UserRepository/UserService
+│   │   ├── auth.go                  # Struct Token/Payload di autenticazione
+│   │   └── errors.go                # Errori di dominio personalizzati
+│   │
+│   ├── repository/                  # STRATO ACCESSO DATI (Persistenza)
+│   │   ├── postgres/                # Implementazione SQL per PostgreSQL/MySQL
+│   │   │   ├── user_repository.go
+│   │   │   └── postgres.go          # Configurazione connessione e pool DB
+│   │   └── redis/                   # Caching, sessioni e token di refresh
+│   │       └── cache.go
+│   │
+│   ├── service/                     # LOGICA DI BUSINESS (Usecases)
+│   │   ├── auth_service.go          # Logica di login, hashing password, generazione JWT
+│   │   └── user_service.go          # Logica di gestione profilo e permessi
+│   │
+│   ├── server/                      # TRANSPORT LAYER (HTTP Delivery)
+│   │   ├── server.go                # Configurazione istanza *http.Server
+│   │   ├── routes.go                # Registrazione centrale delle rotte e gruppi di API
+│   │   ├── health.go                # Health check dell'infrastruttura
+│   │   ├── auth_handler.go          # Controller HTTP per Login / Register
+│   │   ├── user_handler.go          # Controller HTTP per profilo e gestione utenti
+│   │   └── middleware/              # Middleware HTTP
+│   │       ├── auth_middleware.go   # Verifica token JWT
+│   │       ├── logger_middleware.go # Logging avanzato delle richieste HTTP
+│   │       └── rate_limiter.go      # Protezione da abuso API
+│   │
+│   └── worker/                      # BACKGROUND TASKS & JOB ASINCRONI
+│       ├── task_queue.go            # Coda di lavoro per task pesanti (Asynq/Redis)
+│       └── cron.go                  # Scheduler per operazioni temporizzate
+│
+├── pkg/                             # LIBRERIE UTILI E RIUTILIZZABILI IN ALTRI PROGETTI
+│   ├── database/                    # Setup generico driver SQL
+│   ├── logger/                      # Setup del logger strutturato (slog o zap)
+│   ├── mailer/                      # Modulo per invio email (SMTP / SendGrid)
+│   ├── storage/                     # Modulo per upload file (Locale, AWS S3, Cloudflare R2)
+│   ├── validator/                   # Validazione custom dei payload JSON in ingresso
+│   └── response/                    # Helper per risposte JSON standardizzate (success/error)
+│
+├── db/                              # GESTIONE DATABASE
+│   ├── migrations/                  # File .sql per avanzamento/rollback schema DB
+│   └── seeds/                       # Script per dati di test iniziali
+│
+├── templates/                       # TEMPLATE PER EMAIL O SERVER-SIDE RENDERING
+│   └── emails/                      # Template HTML per email di conferma/reset password
+│
+├── .env.example                     # Variabili d'ambiente di esempio
+├── Dockerfile                       # Multi-stage Dockerfile per compilazione e deploy
+├── docker-compose.yml               # Setup locale per Docker (App + Postgres + Redis)
+├── Makefile                         # Comandi rapidi per build, run e migrazioni
+├── go.mod
+└── go.sum
